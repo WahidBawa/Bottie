@@ -36,10 +36,13 @@ def convert(word):
 
 def receive(userMessage):
     global convertedSentence, alphabet
+    convertedSentence = ""
 
-userMessage = "hello"
-words = userMessage.split(" ")
-for i in words:
-    convert(i)
+    # userMessage = "hello"
+    words = userMessage.split(" ")
+    for i in words:
+        convert(i)
+    return convertedSentence
 
-print(convertedSentence)
+
+# print(convertedSentence)

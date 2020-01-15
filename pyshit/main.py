@@ -10,6 +10,7 @@ token = os.getenv('DISCORD_TOKEN')
 
 client = commands.Bot(command_prefix='!')
 
+from uwu import *
 
 @client.event
 async def on_ready():
@@ -61,25 +62,10 @@ async def _8ball(ctx, *, question):
 async def clear(ctx, amount=2):
     await ctx.channel.purge(limit=amount)
 
-
-#     print(message.author.name, message.author.discriminator, message.author.id)
-#     print(str(message).strip('\'').split("=")[:])
-#     return
-
-
-# @client.command()
-# async def listMembers(ctx):
-#     users = ctx.guild.members()
-#     print(users)
-
-
-# @client.event
-# async def on_member_join(member):
-#   print(f'{member} has joined a server.')
-
-# @client.event
-# async def on_member_remove(member):
-#   print(f'{member} has left the server.')
-
+@client.command()
+async def uwu(ctx, *, message):
+    print(f'{message}')
+    uwu = receive(message)
+    await ctx.send(uwu)
 
 client.run(token)
