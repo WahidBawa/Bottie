@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-
+import asyncio
 import os
 from dotenv import load_dotenv
 import random
@@ -14,8 +14,6 @@ token = os.getenv('DISCORD_TOKEN')
 
 client = commands.Bot(command_prefix='!')
 
-silenced_dict = dict()
-
 client.remove_command("help")
 
 commands_dict = {
@@ -24,9 +22,12 @@ commands_dict = {
     "clear": "`!clear <num>`\nDeletes the amount of messages specified (**ADMIN ONLY**)",
     "uwu": "`!uwu <sentence>`\nConverts given sentence into UwU",
     "silence": "`!silence @user <num of minutes>m`\nPrevents user from talking in channels for a certain period of time (**ADMIN ONLY**)",
-    "help": "`!help <command>` prints details of specified command and if none are specified, displays all commands"
-
+    "help": "`!help <command>`\nprints details of specified command and if none are specified, displays all commands",
+    "remindme": "`!remindme <num>(m || h) <reminder>`\nreminds the user to do the specified task after a certain amount of hours or minutes as specified by user"
 }
+
+silenced_dict = dict()
+reminder_dict = dict()
 
 
 def getChannelKey(channel_name):
@@ -48,17 +49,17 @@ async def on_message(message):
         return
 
     if "silenced" in [y.name.lower() for y in message.author.roles]:
-        if ((getCurrTime() - silenced_dict[message.author.nick][1]) / 60 >= silenced_dict[message.author.nick][0]):
+        if (getCurrTime() - silenced_dict[message.author.nick][1]) / 60 >= silenced_dict[message.author.nick][0]:
             role = discord.utils.get(message.author.guild.roles, name="Silenced")
-            await (message.author).remove_roles(role)
+            await message.author.remove_roles(role)
         else:
-            msg = await (message.channel).fetch_message(message.id)
+            msg = await message.channel.fetch_message(message.id)
             await msg.delete()
 
     if "nuub" in [y.name.lower() for y in message.author.roles]:
         await message.guild.get_member(message.author.id).edit(nick=str(message.clean_content))
-        role = discord.utils.get((message.author).guild.roles, name="Nuub")
-        await (message.author).remove_roles(role)
+        role = discord.utils.get(message.author.guild.roles, name="Nuub")
+        await message.author.remove_roles(role)
         await message.channel.purge(limit=100)
 
     if "nuub" not in [y.name.lower() for y in message.author.roles] and "silenced" not in [y.name.lower() for y in
@@ -137,11 +138,11 @@ async def silence(ctx, user: discord.Member, waitTime='5m'):
     currTime = time.clock_gettime(time.CLOCK_REALTIME)
 
     silenced_dict[user.display_name] = (int(waitTime.split("m")[0]), currTime)
-
+    await ctx.send("<@" + str(user.id) + "> has been silenced for " + waitTime[:len(waitTime) - 1] + " minute(s)")
 
 @client.command()
 async def out(ctx):
-    await ctx.send(silenced_dict)
+    await ctx.send(reminder_dict)
 
 
 @client.command()
@@ -157,8 +158,28 @@ async def help(ctx, *, command=None):
         return
     await ctx.send(embed=embed)
 
-@client.command()
-async def createEvent(ctx, eventName, numberOfParticipants):
-    await ctx.send(eventName, numberOfParticipants)
 
+@client.command()
+async def remindme(ctx, waitTime, *, reminder):
+    if "m" not in waitTime and "h" not in waitTime:
+        await ctx.send("Incorrect unit of time!! Please use either 'm' or 'h'")
+        return
+    convertedWaitTime = int(waitTime.split("m")[0]) if "m" in waitTime else int(waitTime.split("h")[0]) * 60
+    reminder_dict[len(reminder_dict)] = (
+        reminder, convertedWaitTime, getCurrTime(), ctx.message.author.id, ctx.message.channel.id)
+    await ctx.send("Okay, <@" + str(ctx.message.author.id) + ">. I will remind you in " + str(
+        convertedWaitTime if "m" in waitTime else convertedWaitTime / 60) + " " + (
+                       "minute(s)" if "m" in waitTime else "hour(s)"))
+
+
+async def checkReminders():
+    while not client.is_closed():
+        await asyncio.sleep(5)
+        for i in range(len(reminder_dict)):
+            if (getCurrTime() - reminder_dict[i][2]) / 60 >= reminder_dict[i][1]:
+                channel = client.get_channel(reminder_dict[i][4])
+                await channel.send('<@' + str(reminder_dict[i][3]) + '>\n' + reminder_dict[i][0])
+                reminder_dict.pop(i)
+
+client.loop.create_task(checkReminders())
 client.run(token)
