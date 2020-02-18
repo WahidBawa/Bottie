@@ -64,7 +64,7 @@ async def on_message(message):
         await message.channel.send(mockConverter(str(message.content)) if rand(0, 1) == 1 else  receive(message.content))
 
     if "silenced" in [y.name.lower() for y in message.author.roles]:
-        if ((getCurrTime() - silenced_dict[message.author.nick][1]) / 60 >= silenced_dict[message.author.nick][0]):
+        if ((getCurrTime() - silenced_dict[message.author.id][1]) / 60 >= silenced_dict[message.author.id][0]):
             role = discord.utils.get(message.author.guild.roles, name="Silenced")
             await (message.author).remove_roles(role)
         else:
@@ -155,6 +155,7 @@ async def mock(ctx, *, message):
     await ctx.send(newString)
 
 @client.command()
+@commands.has_role("ADMIN")
 async def toggle(ctx, input):
     global randomCoverter
     input = input.lower()
@@ -170,17 +171,19 @@ async def toggle(ctx, input):
         await ctx.send("Incorrect Parameter!!")
 
 @client.command()
+@commands.has_role("ADMIN")
 async def silence(ctx, user: discord.Member, waitTime='5m'):
     role = discord.utils.get(user.guild.roles, name="Silenced")
     await user.add_roles(role)
     currTime = time.clock_gettime(time.CLOCK_REALTIME)
-
-    silenced_dict[user.display_name] = (int(waitTime.split("m")[0]), currTime)
+    print(user.id)
+    silenced_dict[user.id] = (int(waitTime.split("m")[0]), currTime)
     await ctx.send("<@" + str(user.id) + "> has been silenced for " + waitTime[:len(waitTime) - 1] + " minute(s)")
 
 @client.command()
+@commands.has_role("ADMIN")
 async def do(ctx):
-    await ctx.send(file=discord.File('temp/s.png'))
+    await ctx.send(silenced_dict)
 
 
 @client.command()
@@ -210,9 +213,14 @@ async def remindme(ctx, waitTime, *, reminder):
                        "minute(s)" if "m" in waitTime else "hour(s)"))
 
 @client.command()
+async def flipcoin(ctx):
+    rand(0, 1)
+    await ctx.send("https://media.giphy.com/media/STQ6QKpChMKKk/source.gif" if rand(0, 1) == 0 else "https://tenor.com/view/sonic-fox-tails-happy-gif-15311049")
+
+@client.command()
 async def flopify(ctx, *, content):
     convertFlop(content)
-    await ctx.send(file=discord.File('gay.png'))
+    await ctx.send(file=discord.File('out.png'))
 
 async def checkReminders():
     while not client.is_closed():
