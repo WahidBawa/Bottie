@@ -16,16 +16,16 @@ def convertFlop(context):
 	img = img.resize((35, 35), Image.ANTIALIAS)
 	size = img.size[0]
 	print(len(context) * 7 * 35)
-	background = Image.new('RGBA', (((len(context)) * 7 * 35) + (len(context) - 1) * 70, 7 * 35), (0, 0, 0, 0))
+	background = Image.new('RGBA', (((len(context)) * 7 * size) + (len(context) - 1) * 70, 7 * size + int(size / 5)), (0, 0, 0, 0))
 
 	x, y = 0, 0
-	xMax = 0;
+	xMax = 0
 	for i in context:
 		if i == " ":
-			xMax += size * 2
-			x = xMax + size
+			xMax += size * 5
+			x = xMax
 			continue
-		baseX = xMax + size if xMax != 0 else 0
+		baseX = xMax if xMax != 0 else 0
 		for n in flopDict[i].split("\n"):
 			for f in n.split("/"):
 				if f == 'flop':
@@ -35,7 +35,7 @@ def convertFlop(context):
 			x = baseX
 			y += size
 
-		x = xMax + size
+		x = xMax
 		y = 0
 
 	background.save('out.png')

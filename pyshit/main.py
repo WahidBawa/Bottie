@@ -70,7 +70,7 @@ async def on_message(message):
         else:
             msg = await (message.channel).fetch_message(message.id)
             await msg.delete()
-
+    print(message.author.roles)
     if "nuub" in [y.name.lower() for y in message.author.roles]:
         await message.guild.get_member(message.author.id).edit(nick=str(message.clean_content))
         role = discord.utils.get((message.author).guild.roles, name="Nuub")
@@ -218,7 +218,7 @@ async def flipcoin(ctx):
     await ctx.send("https://media.giphy.com/media/STQ6QKpChMKKk/source.gif" if rand(0, 1) == 0 else "https://tenor.com/view/sonic-fox-tails-happy-gif-15311049")
 
 @client.command()
-async def flopify(ctx, *, content):
+async def roochify(ctx, *, content):
     convertFlop(content)
     await ctx.send(file=discord.File('out.png'))
 
